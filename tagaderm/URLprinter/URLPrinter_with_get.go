@@ -5,6 +5,8 @@ import (
     "log"
 )
 
+var err error
+
 func page(res http.ResponseWriter, req *http.Request){
     fmt.Fprint(res,req.FormValue("n"))
 }
