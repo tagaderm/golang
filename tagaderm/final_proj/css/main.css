@@ -64,7 +64,7 @@ p{
  
 header {
     display: block;
-    min-height: 100px;
+    min-height: auto;
     top: 0;
     left: 0;
     background: #ffeebb;
@@ -98,8 +98,8 @@ footer {
         max-height: 50px;
     }
     header, footer {
-        min-height: 50px;
-        max-height: 50px;
+        min-height: auto;
+        max-height: auto;
     }
 }
 
