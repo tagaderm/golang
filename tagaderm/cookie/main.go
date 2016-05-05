@@ -10,7 +10,7 @@ func main() {
     http.HandleFunc("/", func(res http.ResponseWriter, req *http.Request) {
         cook, err := req.Cookie("my")
         if err != nil {
-            id, _ := uuid.New()
+            id, _ := uuid.NewV4()
             cook = &http.Cookie{
                 Name:  "the-session",
                 Value: id.String(),
