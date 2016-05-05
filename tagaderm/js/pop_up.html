@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>HTML Unordered List</title>
+    <meta content = "">
+</head>
+
+<body>
+    <div id = 'tDiv'></div>
+    <script>
+        var Div = document.querySelector('#tDiv');
+        var items = ["things that mean something to me", "My wife", "my dog", "work"];
+        var list = document.createElement("ul");
+        for (var i = 0; i<items.length; i++){
+            var element = document.createElement("li");
+            element.innerText = items[i];
+            list.appendChild(element);
+        }
+        Div.appendChild(list);
+        for(var i = 0; i<items.length; i++){
+            document.getElementById(i).addEventListener("Pop",function(){
+                alert(this.innerHTML);
+            })
+        }
+    </script>
+
+</body>
+</html>
