@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+    <html lang = "en">
+        <head>
+            <meta charset="UTF-8">
+            <title>Unordered List html file</title>
+        </head>
+        <body>
+            <div id="content"></div>
+            <script type="text/javascript">
+                var unorderedlist = ["things that mean something to me", "My wife", "my dog", "work"];
+                for(var i =0; i<unorderedlist.length; i++){
+                    var html ="<li>";
+                    html +=unorderedlist[i];
+                    html +="</li>";
+                    document.getElementById("content").innerHTML += html;
+                }
+            </script>
+        </body>
+    </html>
