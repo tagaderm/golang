@@ -4,7 +4,6 @@
         <title>Csci 130 Project</title>
     </head>
     <body>
-        <p> Template loaded successfully </p>
         <form method="POST">
             <h1></h1>
             <p>Username: <input type="text" name="username" id="username"><br></p>
@@ -14,7 +13,8 @@
             <input type="submit">
             {{if .Created}}
             <p>New User created!</p>
-            {{else if .NotCreated}}
+            {{end}}
+            {{if .NotCreadted}}
             <p>There was an error, no user was created.</p>
             {{end}}
         </form>        

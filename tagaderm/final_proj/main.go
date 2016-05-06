@@ -112,12 +112,20 @@ func signup(res http.ResponseWriter, req *http.Request){
             })
             db.Close()
             fmt.Println("user created")
-            Created := true
-            templatePage.Execute(res, Created)
+            obj := struct {
+                    Creadted bool
+                } {
+                    true,
+                }
+            templatePage.Execute(res, obj)
         } else {
             fmt.Println("user not created")
-            NotCreated := true
-            templatePage.Execute(res, NotCreated)
+            obj := struct {
+                    NotCreated bool
+                } {
+                    true,
+                }
+            templatePage.Execute(res, obj)
         }
     } else if req.Method == "GET" {
         templatePage.Execute(res, nil)
@@ -154,12 +162,38 @@ func usernameCheck(res http.ResponseWriter, req *http.Request){
     io.WriteString(res, "true")
 }
 
+func update(res http.ResponseWriter, req *http.Request) {
+    templatePage, err := template.ParseFiles("templates/update_form.html")
+    if err != nil {
+        log.Fatalln(err)
+    }
+    if req.Method == "GET" {
+        fmt.Println("in get")
+        obj := struct {
+                Display bool
+            } {
+                true,
+            }
+        templatePage.Execute(res, obj)
+        } else if req.Method == "POST"{
+            fmt.Println("in post")
+            obj := struct {
+                    Display bool
+                } {
+                    false,
+                }
+            templatePage.Execute(res, obj)
+        }
+    
+}
+
 func main() {
     http.Handle("/public/", http.StripPrefix("/public", http.FileServer(http.Dir("public"))))
     http.Handle("/img/", http.StripPrefix("/img", http.FileServer(http.Dir("img"))))
     http.Handle("/css/", http.StripPrefix("/css", http.FileServer(http.Dir("css"))))
     http.HandleFunc("/", server)
     http.HandleFunc("/signup", signup)
+    http.HandleFunc("/update", update)
     http.HandleFunc("/api/username_check", usernameCheck)
     http.ListenAndServe(":8080", nil)
 }

@@ -1,6 +1,9 @@
 
 var entry = document.querySelector('#username');
 var output = document.querySelector('h1');
+// var check_submit = document.querySelector('#check_username');
+// var check_div = document.querySelector('#check_div');
+// var update_div = document.querySelector('#update_form');
 
 entry.addEventListener('input', function(){
     console.log('ENTRY: ', entry.value);
@@ -19,3 +22,8 @@ entry.addEventListener('input', function(){
         }
     });
 });
+
+// check_submit.addEventListener('onclick', function(){
+//     check_div.style.display = 'none';
+//     update_div.style.display = 'block';
+// });
