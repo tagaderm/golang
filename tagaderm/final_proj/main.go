@@ -6,7 +6,8 @@ import (
     "html/template"
     "log"
     "net/http"
-    // "encoding/base64"
+    "io"
+    "io/ioutil"
     "encoding/json"
     "github.com/nu7hatch/gouuid"
     "github.com/boltdb/bolt"
@@ -22,7 +23,6 @@ type User struct {
     Email string
     Password string
 }
-
 func server(res http.ResponseWriter, req *http.Request){
     obj := visit{
             IsNew: false,
@@ -119,10 +119,37 @@ func signup(res http.ResponseWriter, req *http.Request){
 }
 
 func usernameCheck(res http.ResponseWriter, req *http.Request){
-    
+    // acquire the incoming word
+    var w string
+    bs, err := ioutil.ReadAll(req.Body)
+    if err != nil {
+        log.Fatal(err)
+    }
+    w = string(bs)
+
+    // check the incoming username against the db
+    db, err := bolt.Open("final_proj.db", 0600, &bolt.Options{Timeout: 1 * time.Second})
+    if err != nil {
+        log.Fatal(err)
+    }
+    var exists []byte
+    db.View(func(tx *bolt.Tx) error {
+        b := tx.Bucket([]byte("users"))
+        v := b.Get([]byte(w))
+        exists = v
+        return nil
+    })
+    db.Close()
+
+    if exists == nil {
+        io.WriteString(res, "false")
+        return
+    }
+    io.WriteString(res, "true")
 }
 
 func main() {
+    http.Handle("/public/", http.StripPrefix("/public", http.FileServer(http.Dir("public"))))
     http.Handle("/img/", http.StripPrefix("/img", http.FileServer(http.Dir("img"))))
     http.Handle("/css/", http.StripPrefix("/css", http.FileServer(http.Dir("css"))))
     http.HandleFunc("/", server)

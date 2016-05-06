@@ -6,8 +6,8 @@
     <body>
         <p> Template loaded successfully </p>
         <form method="POST">
-        
-            <p>Username: <input type="text" name="username"><br></p>
+            <h1></h1>
+            <p>Username: <input type="text" name="username" id="username"><br></p>
             <p>Email: <input type="email" name="email"><br></p>
             <p>Password: <input type="password" name="password"><br></p>
 
@@ -17,6 +17,7 @@
             {{else if .NotCreated}}
             <p>There was an error, no user was created.</p>
             {{end}}
-        </form>
+        </form>        
+    <script src="public/main.js"></script>
     </body>
 </html>
