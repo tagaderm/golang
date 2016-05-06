@@ -11,6 +11,7 @@ import (
     "encoding/json"
     "github.com/nu7hatch/gouuid"
     "github.com/boltdb/bolt"
+    "github.com/bradfitz/gomemcache/memcache"
 )
 
 
@@ -64,6 +65,11 @@ func signup(res http.ResponseWriter, req *http.Request){
         username := req.FormValue("username")
         email := req.FormValue("email")
         password := req.FormValue("password")
+
+        mc := memcache.New("10.0.0.1:11211", "10.0.0.2:11211", "10.0.0.3:11212")
+        mc.Set(&memcache.Item{Key: "username", Value: []byte(username)})
+        mc.Set(&memcache.Item{Key: "email", Value: []byte(email)})
+        mc.Set(&memcache.Item{Key: "username", Value: []byte(password)})
 
         db, err := bolt.Open("final_proj.db", 0600, &bolt.Options{Timeout: 1 * time.Second})
         if err != nil {
