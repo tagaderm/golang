@@ -176,12 +176,52 @@ func update(res http.ResponseWriter, req *http.Request) {
             }
         templatePage.Execute(res, obj)
         } else if req.Method == "POST"{
-            fmt.Println("in post")
-            obj := struct {
-                    Display bool
-                } {
-                    false,
+            var user User
+            username := req.FormValue("check_username")
+            if username != "" {
+
+                mc := memcache.New("10.0.0.1:11211", "10.0.0.2:11211", "10.0.0.3:11212")
+                it, err := mc.Get("username")
+                if err != nil {
+                    log.Fatalln(err)
                 }
+                fmt.Println(it)
+                if /*username == it*/ true {
+                    email, err := mc.Get("username")
+                    if err != nil {
+                        log.Fatalln(err)
+                    }
+                    fmt.Println(email)
+                } else { //not in memcache
+                    var exists []byte
+                    db, err := bolt.Open("final_proj.db", 0600, &bolt.Options{Timeout: 1 * time.Second})
+                    if err != nil {
+                        log.Fatal(err)
+                    }
+                    db.View(func(tx *bolt.Tx) error {
+                        b := tx.Bucket([]byte("users"))
+                        v := b.Get([]byte(username))
+                        exists = v
+                        return nil
+                    })
+                    db.Close()
+                    var m User
+                    if err := json.Unmarshal(exists, &m); err != nil {
+                        log.Fatal(err)
+                    }
+                    user = m
+                    fmt.Println(m.Email)
+                }
+
+                fmt.Println("in post")
+                obj := struct {
+                        Display bool
+                    } {
+                        false,
+                    }
+                templatePage.Execute(res, obj)    
+            }
+            obj := user
             templatePage.Execute(res, obj)
         }
     
