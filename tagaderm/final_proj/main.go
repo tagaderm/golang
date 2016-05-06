@@ -41,7 +41,7 @@ func server(res http.ResponseWriter, req *http.Request){
         }
         http.SetCookie(res, cookie)
     }
-    fmt.Println(cookie)
+    // fmt.Println(cookie)
 
     tpl, err := template.ParseFiles("templates/base.html")
     if err != nil {
@@ -60,40 +60,62 @@ func signup(res http.ResponseWriter, req *http.Request){
         log.Fatalln(err)
     }
     if req.Method == "POST"{
-        // templatePage, err := template.ParseFiles("templates/sign_up_form.html")
-        // if err != nil {
-        //     log.Fatalln(err)
-        // }
+
         username := req.FormValue("username")
         email := req.FormValue("email")
         password := req.FormValue("password")
-
-        user := User{
-            Username: username,
-            Email: email,
-            Password: password,
-        }
-
-        encodeToJSon, err := json.Marshal(user)
-        if err != nil {
-            fmt.Printf("error: ", err)
-        }
 
         db, err := bolt.Open("final_proj.db", 0600, &bolt.Options{Timeout: 1 * time.Second})
         if err != nil {
             log.Fatal(err)
         }
 
-        db.Update(func(tx *bolt.Tx) error {
-            b, err := tx.CreateBucketIfNotExists([]byte("users"))
-            if err != nil {
-                return err
+        var exists []byte
+        db.View(func(tx *bolt.Tx) error {
+            b := tx.Bucket([]byte("users"))
+            v := b.Get([]byte(username))
+            exists = v
+            return nil
+        })
+
+        db.Close()
+
+        if exists == nil {
+            user := User{
+                Username: username,
+                Email: email,
+                Password: password,
             }
 
-            return b.Put([]byte(user.Username),[]byte(encodeToJSon))
-        })
+            encodeToJSon, err := json.Marshal(user)
+            if err != nil {
+                fmt.Printf("error: ", err)
+            }
+
+            db, err := bolt.Open("final_proj.db", 0600, &bolt.Options{Timeout: 1 * time.Second})
+            if err != nil {
+                log.Fatal(err)
+            }
+
+            db.Update(func(tx *bolt.Tx) error {
+                b, err := tx.CreateBucketIfNotExists([]byte("users"))
+                if err != nil {
+                    return err
+                }
+                return b.Put([]byte(user.Username),[]byte(encodeToJSon))
+            })
+            db.Close()
+            fmt.Println("user created")
+            Created := true
+            templatePage.Execute(res, Created)
+        } else {
+            fmt.Println("user not created")
+            NotCreated := true
+            templatePage.Execute(res, NotCreated)
+        }
+    } else if req.Method == "GET" {
+        templatePage.Execute(res, nil)
     }
-    templatePage.Execute(res, nil)
 }
 
 func usernameCheck(res http.ResponseWriter, req *http.Request){
