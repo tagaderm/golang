@@ -9,10 +9,10 @@ import (
     "io"
     "io/ioutil"
     "encoding/json"
+    "strconv"
     "github.com/nu7hatch/gouuid"
     "github.com/boltdb/bolt"
     "github.com/bradfitz/gomemcache/memcache"
-    "github.com/Jeffail/gabs"
 )
 
 
@@ -26,12 +26,18 @@ type User struct {
     Password string
 }
 
-type zip struct {
-    State string
-    Zip string
-    Distance string
-    City string
+type ZipCode struct {
+    Code string `json:"zip_code"`
+    Distance float64 `json:"distance"`
+    City string `json:"city"`
+    State string `json:"state"`
 }
+
+type ExpectedJSON struct {
+    ZipCodes []ZipCode `json:"zip_codes"`
+}
+
+// type mytype map[string][]map[string]string
 
 func server(res http.ResponseWriter, req *http.Request){
     obj := visit{
@@ -262,7 +268,8 @@ func external(res http.ResponseWriter, req *http.Request) {
     if req.Method == "GET" {
         tpl.Execute(res, nil)
     } else if req.Method == "POST" {
-        url := "https://www.zipcodeapi.com/rest/JyCX6C8IlSVxTcSVmad12a43G0M5bckUKXSRz0AUTvsMIlI4vW5x6aANanTmzdhk/radius.json/"+"93726"+"/5/mile"
+        zip := req.FormValue("zip")
+        url := "https://www.zipcodeapi.com/rest/JyCX6C8IlSVxTcSVmad12a43G0M5bckUKXSRz0AUTvsMIlI4vW5x6aANanTmzdhk/radius.json/"+zip+"/5/mile"
         resp, err := http.Get(url)
             if err != nil {
             log.Fatalln(err)
@@ -270,25 +277,28 @@ func external(res http.ResponseWriter, req *http.Request) {
         defer resp.Body.Close()
         body, err := ioutil.ReadAll(resp.Body)
 
-        // json.Unmarshal(body)
-        jsonParsed, err := gabs.ParseJSON(body)
-        fmt.Println(jsonParsed)
-
-        s := make([]zip, 50)
-
-        children, _ := jsonParsed.S("zip_codes").Children()
-        for _, child := range children {
-            fmt.Println(child.Data())
-            z := zip{
-                State: child["state"],
-                Zip: child["zip_code"],
-                Distance: child["distance"],
-                City: child["city"],
-            }
-            s = append(s, z)
+        var input ExpectedJSON
+        json.Unmarshal(body, &input)
+        var table_items string
+        table_items += "<tr><th>Zip Code</th><th>Distance</th><th>City</th><th>State</th></tr>"
+        for _, element := range input.ZipCodes {
+            table_items += "<tr>"
+            table_items += "<td>"
+            table_items += element.Code
+            table_items += "</td>"
+            table_items += "<td>"
+            table_items += strconv.FormatFloat(element.Distance , 'f', 4, 32)
+            table_items += "</td>"
+            table_items += "<td>"
+            table_items += element.City
+            table_items += "</td>"
+            table_items += "<td>"
+            table_items += element.State
+            table_items += "</td>"
+            table_items += "</tr>"
         }
 
-        // fmt.Println(string(body))
+        fmt.Fprint(res, "<!DOCTYPE html><html><body><table border=\"1\" cellpadding=\"5\" cellspacing=\"5\">"+table_items+"</table><a href=\"http://localhost:8080/external\">Try Another</a></body></html>")
     }
 
 }
