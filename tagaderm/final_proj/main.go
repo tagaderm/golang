@@ -37,8 +37,6 @@ type ExpectedJSON struct {
     ZipCodes []ZipCode `json:"zip_codes"`
 }
 
-// type mytype map[string][]map[string]string
-
 func server(res http.ResponseWriter, req *http.Request){
     obj := visit{
             IsNew: false,
@@ -57,7 +55,6 @@ func server(res http.ResponseWriter, req *http.Request){
         }
         http.SetCookie(res, cookie)
     }
-    // fmt.Println(cookie)
 
     tpl, err := template.ParseFiles("templates/base.html")
     if err != nil {
