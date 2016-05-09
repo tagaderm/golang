@@ -12,6 +12,7 @@ import (
     "github.com/nu7hatch/gouuid"
     "github.com/boltdb/bolt"
     "github.com/bradfitz/gomemcache/memcache"
+    "github.com/Jeffail/gabs"
 )
 
 
@@ -24,6 +25,14 @@ type User struct {
     Email string
     Password string
 }
+
+type zip struct {
+    State string
+    Zip string
+    Distance string
+    City string
+}
+
 func server(res http.ResponseWriter, req *http.Request){
     obj := visit{
             IsNew: false,
@@ -223,8 +232,65 @@ func update(res http.ResponseWriter, req *http.Request) {
             }
             obj := user
             templatePage.Execute(res, obj)
+        }    
+}
+
+func upload(res http.ResponseWriter, req *http.Request) {
+    tpl, err := template.ParseFiles("templates/upload.html")
+    if err != nil {
+        log.Fatalln(err)
+    }
+
+    tpl.Execute(res, nil)
+
+    // client, err := storage.NewClient(ctx)
+    // if err != nil {
+    //     log.Fatal(err)
+    // }
+
+    // err = tpl.Execute(res, obj)
+    // if err != nil{
+    //     log.Fatalln(err)
+    // }
+}
+
+func external(res http.ResponseWriter, req *http.Request) {
+    tpl, err := template.ParseFiles("templates/external.html")
+    if err != nil {
+        log.Fatalln(err)
+    }
+    if req.Method == "GET" {
+        tpl.Execute(res, nil)
+    } else if req.Method == "POST" {
+        url := "https://www.zipcodeapi.com/rest/JyCX6C8IlSVxTcSVmad12a43G0M5bckUKXSRz0AUTvsMIlI4vW5x6aANanTmzdhk/radius.json/"+"93726"+"/5/mile"
+        resp, err := http.Get(url)
+            if err != nil {
+            log.Fatalln(err)
         }
-    
+        defer resp.Body.Close()
+        body, err := ioutil.ReadAll(resp.Body)
+
+        // json.Unmarshal(body)
+        jsonParsed, err := gabs.ParseJSON(body)
+        fmt.Println(jsonParsed)
+
+        s := make([]zip, 50)
+
+        children, _ := jsonParsed.S("zip_codes").Children()
+        for _, child := range children {
+            fmt.Println(child.Data())
+            z := zip{
+                State: child["state"],
+                Zip: child["zip_code"],
+                Distance: child["distance"],
+                City: child["city"],
+            }
+            s = append(s, z)
+        }
+
+        // fmt.Println(string(body))
+    }
+
 }
 
 func main() {
@@ -234,6 +300,8 @@ func main() {
     http.HandleFunc("/", server)
     http.HandleFunc("/signup", signup)
     http.HandleFunc("/update", update)
+    http.HandleFunc("/upload", upload)
+    http.HandleFunc("/external", external)
     http.HandleFunc("/api/username_check", usernameCheck)
     http.ListenAndServe(":8080", nil)
 }
