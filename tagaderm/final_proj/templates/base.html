@@ -9,20 +9,24 @@
     <body>
         <header>
             {{if .IsNew}}
-            This is your first time here
+            Never here
             <svg width="100" height="100">
                 <circle cx="50" cy="50" r="40" stroke="green" stroke-width="4" fill="yellow" />
             </svg>
             {{else}}
-            You've been here before
-            <svg width="100" height="100">
-                <circle cx="50" cy="50" r="40" stroke="green" stroke-width="4" fill="red" />
-            </svg>
+            Been here,
             {{end}}
+            {{if .Logged}}
+                Logged in
+            {{end}}
+            <svg width="50" height="50">
+                <circle cx="25" cy="25" r="20" stroke="green" stroke-width="4" fill="red" />
+            </svg>            
             <a href="http://localhost:8080/signup">Signup</a>
             <a href="http://localhost:8080/update">Update</a>
             <a href="http://localhost:8080/upload">Upload</a>
             <a href="http://localhost:8080/external">External Service</a>
+            <a href="http://localhost:8080/login">Login</a>
         </header>
         <div id='main' class='top-section'>
             <article>The Website!</article>

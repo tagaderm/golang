@@ -15,11 +15,6 @@ import (
     "github.com/bradfitz/gomemcache/memcache"
 )
 
-
-type visit struct {
-    IsNew  bool
-}
-
 type User struct {
     Username string
     Email string
@@ -38,9 +33,18 @@ type ExpectedJSON struct {
 }
 
 func server(res http.ResponseWriter, req *http.Request){
-    obj := visit{
+    obj := struct {
+            IsNew bool
+            Logged bool
+        } {
             IsNew: false,
+            Logged: false,
         }
+    lcookie, err := req.Cookie("logged_in")
+    if err == nil {
+        obj.Logged = true
+    }
+    fmt.Println(lcookie)
 
     cookie, err := req.Cookie("session_id")
 
@@ -300,6 +304,101 @@ func external(res http.ResponseWriter, req *http.Request) {
 
 }
 
+func login(res http.ResponseWriter, req *http.Request) {
+    cookie, err := req.Cookie("logged_in")
+    if err == http.ErrNoCookie {
+        tpl, err := template.ParseFiles("templates/login.html")
+        if err != nil {
+            log.Fatalln(err)
+        }
+        if req.Method =="GET" {
+            err = tpl.Execute(res, nil)
+            if err != nil{
+                log.Fatalln(err)
+            }
+        } else if req.Method == "POST" {
+            username := req.FormValue("username")
+            password := req.FormValue("password")
+
+            db, err := bolt.Open("final_proj.db", 0600, &bolt.Options{Timeout: 1 * time.Second})
+            if err != nil {
+                log.Fatal(err)
+            }
+
+            var exists []byte
+            db.View(func(tx *bolt.Tx) error {
+                b := tx.Bucket([]byte("users"))
+                u := b.Get([]byte(username))
+                exists = u
+                return nil
+            })
+            var user User
+            json.Unmarshal(exists, &user)
+            db.Close()
+            if exists != nil {
+                fmt.Println(user.Username)
+                if user.Password == password {
+                    cookie = &http.Cookie{
+                        Name:  "logged_in",
+                        Value: user.Username,
+                        // Secure: true
+                        HttpOnly: true,
+                    }
+                    http.SetCookie(res, cookie)
+                    http.Redirect(res, req, "/", http.StatusFound)
+                } else {
+                    obj := struct {
+                        Failed bool
+                        Logged bool
+                        Dne bool
+                    } {
+                        Failed: true,
+                        Logged: false,
+                        Dne: false,
+                    }
+                    err = tpl.Execute(res, obj)
+                    if err != nil{
+                        log.Fatalln(err)
+                    }
+                }
+
+            } else {
+                obj := struct {
+                    Failed bool
+                    Logged bool
+                    Dne bool
+                } {
+                    Failed: false,
+                    Logged: false,
+                    Dne: true,
+                }
+                err = tpl.Execute(res, obj)
+                if err != nil{
+                    log.Fatalln(err)
+                }
+            }
+        }
+        } else {
+            tpl, err := template.ParseFiles("templates/login.html")
+            if err != nil {
+                log.Fatalln(err)
+            }
+            obj := struct {
+                Failed bool
+                Logged bool
+                Dne bool
+            } {
+                Failed: false,
+                Logged: true,
+                Dne: false,
+            }
+            err = tpl.Execute(res, obj)
+            if err != nil{
+                log.Fatalln(err)
+            }
+        }
+}
+
 func main() {
     http.Handle("/public/", http.StripPrefix("/public", http.FileServer(http.Dir("public"))))
     http.Handle("/img/", http.StripPrefix("/img", http.FileServer(http.Dir("img"))))
@@ -309,6 +408,7 @@ func main() {
     http.HandleFunc("/update", update)
     http.HandleFunc("/upload", upload)
     http.HandleFunc("/external", external)
+    http.HandleFunc("/login", login)
     http.HandleFunc("/api/username_check", usernameCheck)
     http.ListenAndServe(":8080", nil)
 }

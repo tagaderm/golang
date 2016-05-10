@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Csci 130 Project</title>
+    </head>
+    <body>
+        <div>
+            {{if .Logged}}
+            <h2>You are already logged in <a href="http://localhost:8080/">return</h2> home?</p>
+            {{end}}
+        </div>
+        {{if .Failed}}
+            <div>
+                <h2>Incorrect credentials</h2>
+            </div>
+        {{end}}
+        <div>
+            <form method="POST">
+                <h1></h1>
+                <p>Username: <input type="text" name="username" id="username"><br></p>
+                <p>Password: <input type="password" name="password"><br></p>
+
+                <input type="submit">
+            </form>
+        </div>
+        <div>
+            {{if .Dne}}
+            <p>That user does not exist</p>
+            {{end}}
+        </div>
+        <a href="http://localhost:8080/">Back Home</a>
+    </body>
+</html>

@@ -17,9 +17,11 @@ p{
   text-align:center;
 }
 
+a {font-size: 20px}
+
 #main {
     margin: 0px;
-    padding-top: 120px;
+    padding-top: 80px;
     display: -webkit-flex;
     display:         flex;
     -webkit-flex-flow: row;
