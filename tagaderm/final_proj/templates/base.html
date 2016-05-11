@@ -28,6 +28,9 @@
             <a href="http://localhost:8080/upload">Upload</a>
             <a href="http://localhost:8080/external">External Service</a>
             <a href="http://localhost:8080/login">Login</a>
+            {{if .Logged}}
+                <a href="http://localhost:8080/logout">Logout</a>
+            {{end}}
         </header>
         <div id='main' class='top-section'>
             <article>The Website!</article>

@@ -399,6 +399,22 @@ func login(res http.ResponseWriter, req *http.Request) {
         }
 }
 
+func logout(res http.ResponseWriter, req *http.Request) {
+    cookie, err := req.Cookie("logged_in")
+    if err != nil{
+        log.Fatalln(err)
+    }
+    cookie = &http.Cookie{
+        Name:  "logged_in",
+        Value: cookie.Value,
+        // Secure: true
+        HttpOnly: true,
+        MaxAge: -1,
+    }
+    http.SetCookie(res, cookie)
+    http.Redirect(res, req, "/", http.StatusFound)
+}
+
 func main() {
     http.Handle("/public/", http.StripPrefix("/public", http.FileServer(http.Dir("public"))))
     http.Handle("/img/", http.StripPrefix("/img", http.FileServer(http.Dir("img"))))
@@ -409,6 +425,7 @@ func main() {
     http.HandleFunc("/upload", upload)
     http.HandleFunc("/external", external)
     http.HandleFunc("/login", login)
+    http.HandleFunc("/logout", logout)
     http.HandleFunc("/api/username_check", usernameCheck)
     http.ListenAndServe(":8080", nil)
 }
